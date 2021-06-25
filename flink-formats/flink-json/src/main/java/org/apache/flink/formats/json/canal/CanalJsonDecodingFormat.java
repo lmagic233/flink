@@ -187,6 +187,19 @@ public class CanalJsonDecodingFormat implements DecodingFormat<DeserializationSc
                     }
                 }),
 
+        BINLOG_TYPE(
+                "binlog-type",
+                DataTypes.STRING().nullable(),
+                DataTypes.FIELD("type", DataTypes.STRING()),
+                new MetadataConverter() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Object convert(GenericRowData row, int pos) {
+                        return row.getString(pos);
+                    }
+                }),
+
         INGESTION_TIMESTAMP(
                 "ingestion-timestamp",
                 DataTypes.TIMESTAMP_WITH_LOCAL_TIME_ZONE(3).nullable(),

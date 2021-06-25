@@ -93,8 +93,18 @@ public class PostgresCatalog extends AbstractJdbcCatalog {
             String defaultDatabase,
             String username,
             String pwd,
+            String baseUrl,
+            String additionalParams) {
+        super(catalogName, defaultDatabase, username, pwd, baseUrl, additionalParams);
+    }
+
+    protected PostgresCatalog(
+            String catalogName,
+            String defaultDatabase,
+            String username,
+            String pwd,
             String baseUrl) {
-        super(catalogName, defaultDatabase, username, pwd, baseUrl);
+        super(catalogName, defaultDatabase, username, pwd, baseUrl, "");
     }
 
     // ------ databases ------
@@ -203,7 +213,7 @@ public class PostgresCatalog extends AbstractJdbcCatalog {
                     getPrimaryKey(metaData, pgPath.getPgSchemaName(), pgPath.getPgTableName());
 
             PreparedStatement ps =
-                    conn.prepareStatement(String.format("SELECT * FROM %s;", pgPath.getFullPath()));
+                    conn.prepareStatement(String.format("SELECT * FROM %s LIMIT 1;", pgPath.getFullPath()));
 
             ResultSetMetaData rsmd = ps.getMetaData();
 

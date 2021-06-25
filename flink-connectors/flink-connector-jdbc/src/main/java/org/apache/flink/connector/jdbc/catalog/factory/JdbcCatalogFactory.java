@@ -30,10 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.apache.flink.connector.jdbc.catalog.factory.JdbcCatalogFactoryOptions.BASE_URL;
-import static org.apache.flink.connector.jdbc.catalog.factory.JdbcCatalogFactoryOptions.DEFAULT_DATABASE;
-import static org.apache.flink.connector.jdbc.catalog.factory.JdbcCatalogFactoryOptions.PASSWORD;
-import static org.apache.flink.connector.jdbc.catalog.factory.JdbcCatalogFactoryOptions.USERNAME;
+import static org.apache.flink.connector.jdbc.catalog.factory.JdbcCatalogFactoryOptions.*;
 import static org.apache.flink.table.factories.FactoryUtil.PROPERTY_VERSION;
 
 /** Factory for {@link JdbcCatalog}. */
@@ -60,6 +57,7 @@ public class JdbcCatalogFactory implements CatalogFactory {
     public Set<ConfigOption<?>> optionalOptions() {
         final Set<ConfigOption<?>> options = new HashSet<>();
         options.add(PROPERTY_VERSION);
+        options.add(ADDITIONAL_PARAMS);
         return options;
     }
 
@@ -74,6 +72,7 @@ public class JdbcCatalogFactory implements CatalogFactory {
                 helper.getOptions().get(DEFAULT_DATABASE),
                 helper.getOptions().get(USERNAME),
                 helper.getOptions().get(PASSWORD),
-                helper.getOptions().get(BASE_URL));
+                helper.getOptions().get(BASE_URL),
+                helper.getOptions().get(ADDITIONAL_PARAMS));
     }
 }

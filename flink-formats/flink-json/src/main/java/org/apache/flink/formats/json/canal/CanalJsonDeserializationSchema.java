@@ -363,7 +363,7 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
         // append fields that are required for reading metadata in the root
         final List<DataTypes.Field> rootMetadataFields =
                 readableMetadata.stream()
-                        .filter(m -> m != ReadableMetadata.DATABASE && m != ReadableMetadata.TABLE)
+                        .filter(m -> m != ReadableMetadata.DATABASE && m != ReadableMetadata.TABLE && m != ReadableMetadata.BINLOG_TYPE)
                         .map(m -> m.requiredJsonField)
                         .distinct()
                         .collect(Collectors.toList());

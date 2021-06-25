@@ -61,7 +61,8 @@ public class JdbcCatalogFactoryTest {
                         PostgresCatalog.DEFAULT_DATABASE,
                         TEST_USERNAME,
                         TEST_PWD,
-                        baseUrl);
+                        baseUrl,
+                        "");
     }
 
     @Test

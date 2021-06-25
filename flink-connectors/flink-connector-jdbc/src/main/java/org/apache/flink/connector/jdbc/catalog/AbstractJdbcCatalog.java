@@ -73,13 +73,15 @@ public abstract class AbstractJdbcCatalog extends AbstractCatalog {
     protected final String pwd;
     protected final String baseUrl;
     protected final String defaultUrl;
+    protected final String additionalParams;
 
     public AbstractJdbcCatalog(
             String catalogName,
             String defaultDatabase,
             String username,
             String pwd,
-            String baseUrl) {
+            String baseUrl,
+            String additionalParams) {
         super(catalogName, defaultDatabase);
 
         checkArgument(!StringUtils.isNullOrWhitespaceOnly(username));
@@ -90,8 +92,9 @@ public abstract class AbstractJdbcCatalog extends AbstractCatalog {
 
         this.username = username;
         this.pwd = pwd;
+        this.additionalParams = additionalParams;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        this.defaultUrl = this.baseUrl + defaultDatabase;
+        this.defaultUrl = this.baseUrl + defaultDatabase + "?" + additionalParams;
     }
 
     @Override
@@ -123,6 +126,10 @@ public abstract class AbstractJdbcCatalog extends AbstractCatalog {
 
     public String getBaseUrl() {
         return baseUrl;
+    }
+
+    public String getAdditionalParams() {
+        return additionalParams;
     }
 
     // ------ retrieve PK constraint ------
