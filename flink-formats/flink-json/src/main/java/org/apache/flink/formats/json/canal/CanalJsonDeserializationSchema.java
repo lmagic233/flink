@@ -100,6 +100,8 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
     /** Pattern of the specific table. */
     private final Pattern tablePattern;
 
+    private final boolean decodeStreamAsAppendOnly;
+
     private CanalJsonDeserializationSchema(
             DataType physicalDataType,
             List<ReadableMetadata> requestedMetadata,
@@ -107,7 +109,8 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
             @Nullable String database,
             @Nullable String table,
             boolean ignoreParseErrors,
-            TimestampFormat timestampFormat) {
+            TimestampFormat timestampFormat,
+            boolean decodeStreamAsAppendOnly) {
         final RowType jsonRowType = createJsonRowType(physicalDataType, requestedMetadata);
         this.jsonDeserializer =
                 new JsonRowDataDeserializationSchema(
@@ -130,6 +133,7 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
         this.fieldCount = physicalRowType.getFieldCount();
         this.databasePattern = database == null ? null : Pattern.compile(database);
         this.tablePattern = table == null ? null : Pattern.compile(table);
+        this.decodeStreamAsAppendOnly = decodeStreamAsAppendOnly;
     }
 
     // ------------------------------------------------------------------------------------------
@@ -154,6 +158,7 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
         private String table = null;
         private boolean ignoreParseErrors = false;
         private TimestampFormat timestampFormat = TimestampFormat.SQL;
+        private boolean decodeStreamAsAppendOnly = false;
 
         private Builder(
                 DataType physicalDataType,
@@ -184,6 +189,11 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
             return this;
         }
 
+        public Builder setDecodeStreamAsAppendOnly(boolean decodeStreamAsAppendOnly) {
+            this.decodeStreamAsAppendOnly = decodeStreamAsAppendOnly;
+            return this;
+        }
+
         public CanalJsonDeserializationSchema build() {
             return new CanalJsonDeserializationSchema(
                     physicalDataType,
@@ -192,7 +202,8 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
                     database,
                     table,
                     ignoreParseErrors,
-                    timestampFormat);
+                    timestampFormat,
+                    decodeStreamAsAppendOnly);
         }
     }
 
@@ -254,8 +265,11 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
                         }
                     }
                     before.setRowKind(RowKind.UPDATE_BEFORE);
-                    after.setRowKind(RowKind.UPDATE_AFTER);
-                    emitRow(row, before, out);
+                    after.setRowKind(decodeStreamAsAppendOnly ? RowKind.INSERT : RowKind.UPDATE_AFTER);
+
+                    if (!decodeStreamAsAppendOnly) {
+                        emitRow(row, before, out);
+                    }
                     emitRow(row, after, out);
                 }
             } else if (OP_DELETE.equals(type)) {
@@ -264,7 +278,10 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
                 for (int i = 0; i < data.size(); i++) {
                     GenericRowData insert = (GenericRowData) data.getRow(i, fieldCount);
                     insert.setRowKind(RowKind.DELETE);
-                    emitRow(row, insert, out);
+
+                    if (!decodeStreamAsAppendOnly) {
+                        emitRow(row, insert, out);
+                    }
                 }
             } else if (OP_CREATE.equals(type)) {
                 // "data" field is null and "type" is "CREATE" which means
@@ -333,7 +350,8 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
                 && Objects.equals(database, that.database)
                 && Objects.equals(table, that.table)
                 && ignoreParseErrors == that.ignoreParseErrors
-                && fieldCount == that.fieldCount;
+                && fieldCount == that.fieldCount
+                && decodeStreamAsAppendOnly == that.decodeStreamAsAppendOnly;
     }
 
     @Override
@@ -345,7 +363,8 @@ public final class CanalJsonDeserializationSchema implements DeserializationSche
                 database,
                 table,
                 ignoreParseErrors,
-                fieldCount);
+                fieldCount,
+                decodeStreamAsAppendOnly);
     }
 
     // --------------------------------------------------------------------------------------------

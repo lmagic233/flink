@@ -31,7 +31,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.utils.DataTypeUtils;
-import org.apache.flink.types.RowKind;
 
 import javax.annotation.Nullable;
 
@@ -63,16 +62,20 @@ public class CanalJsonDecodingFormat implements DecodingFormat<DeserializationSc
 
     private final TimestampFormat timestampFormat;
 
+    private final boolean decodeStreamAsAppendOnly;
+
     public CanalJsonDecodingFormat(
             String database,
             String table,
             boolean ignoreParseErrors,
-            TimestampFormat timestampFormat) {
+            TimestampFormat timestampFormat,
+            boolean decodeStreamAsAppendOnly) {
         this.database = database;
         this.table = table;
         this.ignoreParseErrors = ignoreParseErrors;
         this.timestampFormat = timestampFormat;
         this.metadataKeys = Collections.emptyList();
+        this.decodeStreamAsAppendOnly = decodeStreamAsAppendOnly;
     }
 
     @Override
@@ -101,6 +104,7 @@ public class CanalJsonDecodingFormat implements DecodingFormat<DeserializationSc
                 .setTable(table)
                 .setIgnoreParseErrors(ignoreParseErrors)
                 .setTimestampFormat(timestampFormat)
+                .setDecodeStreamAsAppendOnly(decodeStreamAsAppendOnly)
                 .build();
     }
 
@@ -119,12 +123,7 @@ public class CanalJsonDecodingFormat implements DecodingFormat<DeserializationSc
 
     @Override
     public ChangelogMode getChangelogMode() {
-        return ChangelogMode.newBuilder()
-                .addContainedKind(RowKind.INSERT)
-                .addContainedKind(RowKind.UPDATE_BEFORE)
-                .addContainedKind(RowKind.UPDATE_AFTER)
-                .addContainedKind(RowKind.DELETE)
-                .build();
+        return decodeStreamAsAppendOnly ? ChangelogMode.insertOnly() : ChangelogMode.all();
     }
 
     // --------------------------------------------------------------------------------------------

@@ -42,14 +42,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.apache.flink.formats.json.JsonOptions.ENCODE_DECIMAL_AS_PLAIN_NUMBER;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.DATABASE_INCLUDE;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.IGNORE_PARSE_ERRORS;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.JSON_MAP_NULL_KEY_LITERAL;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.JSON_MAP_NULL_KEY_MODE;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.TABLE_INCLUDE;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.TIMESTAMP_FORMAT;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.validateDecodingFormatOptions;
-import static org.apache.flink.formats.json.canal.CanalJsonOptions.validateEncodingFormatOptions;
+import static org.apache.flink.formats.json.canal.CanalJsonOptions.*;
 
 /**
  * Format factory for providing configured instances of Canal JSON to RowData {@link
@@ -70,8 +63,9 @@ public class CanalJsonFormatFactory
         final String table = formatOptions.getOptional(TABLE_INCLUDE).orElse(null);
         final boolean ignoreParseErrors = formatOptions.get(IGNORE_PARSE_ERRORS);
         final TimestampFormat timestampFormat = JsonOptions.getTimestampFormat(formatOptions);
+        final boolean decodeStreamAsAppendOnly = formatOptions.get(DECODE_STREAM_AS_APPEND_ONLY);
 
-        return new CanalJsonDecodingFormat(database, table, ignoreParseErrors, timestampFormat);
+        return new CanalJsonDecodingFormat(database, table, ignoreParseErrors, timestampFormat, decodeStreamAsAppendOnly);
     }
 
     @Override
@@ -133,6 +127,7 @@ public class CanalJsonFormatFactory
         options.add(JSON_MAP_NULL_KEY_MODE);
         options.add(JSON_MAP_NULL_KEY_LITERAL);
         options.add(ENCODE_DECIMAL_AS_PLAIN_NUMBER);
+        options.add(DECODE_STREAM_AS_APPEND_ONLY);
         return options;
     }
 }
