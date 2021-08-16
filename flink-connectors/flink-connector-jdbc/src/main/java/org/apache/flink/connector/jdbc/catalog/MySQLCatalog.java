@@ -81,7 +81,7 @@ public class MySQLCatalog extends AbstractJdbcCatalog {
                 }
             };
 
-    protected MySQLCatalog(
+    public MySQLCatalog(
             String catalogName,
             String defaultDatabase,
             String username,
@@ -92,7 +92,7 @@ public class MySQLCatalog extends AbstractJdbcCatalog {
         super(catalogName, defaultDatabase, username, pwd, baseUrl, additionalParams);
     }
 
-    protected MySQLCatalog(
+    public MySQLCatalog(
             String catalogName,
             String defaultDatabase,
             String username,
@@ -241,6 +241,7 @@ public class MySQLCatalog extends AbstractJdbcCatalog {
     public static final String MYSQL_DATE = "DATE";
     public static final String MYSQL_TIME = "TIME";
     public static final String MYSQL_DATETIME = "DATETIME";
+    public static final String MYSQL_TIMESTAMP = "TIMESTAMP";
     public static final String MYSQL_CHAR = "CHAR";
     public static final String MYSQL_VARCHAR = "VARCHAR";
     public static final String MYSQL_TEXT = "TEXT";
@@ -303,6 +304,8 @@ public class MySQLCatalog extends AbstractJdbcCatalog {
                     precision = TimestampType.DEFAULT_PRECISION;
                 }
                 return DataTypes.TIMESTAMP(precision);
+            case MYSQL_TIMESTAMP:
+                return DataTypes.TIMESTAMP();
             case MYSQL_CHAR:
                 // return DataTypes.CHAR(precision);
             case MYSQL_VARCHAR:
