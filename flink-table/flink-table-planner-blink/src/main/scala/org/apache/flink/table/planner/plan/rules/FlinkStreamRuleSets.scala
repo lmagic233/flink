@@ -479,6 +479,8 @@ object FlinkStreamRuleSets {
     * RuleSet to optimize plans after stream exec execution.
     */
   val PHYSICAL_REWRITE: RuleSet = RuleSets.ofList(
+    // hash distributed lookup join rule
+    HashDistributedLookupJoinRule.INSTANCE,
     // optimize agg rule
     TwoStageOptimizedAggregateRule.INSTANCE,
     // incremental agg rule

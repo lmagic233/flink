@@ -249,6 +249,17 @@ public class ExecutionConfigOptions {
                             "Sets the window elements buffer size limit used in group window agg operator.");
 
     // ------------------------------------------------------------------------
+    //  Lookup Options
+    // ------------------------------------------------------------------------
+
+    @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
+    public static final ConfigOption<Boolean> TABLE_EXEC_LOOKUP_DISTRIBUTE_BY_KEY =
+            key("table.exec.lookup.distribute-by-key")
+                    .defaultValue(false)
+                    .withDescription(
+                            "Specifies whether to distribute lookups to sub-tasks by hash value of lookup key.");
+
+    // ------------------------------------------------------------------------
     //  Async Lookup Options
     // ------------------------------------------------------------------------
     @Documentation.TableOption(execMode = Documentation.ExecMode.BATCH_STREAMING)

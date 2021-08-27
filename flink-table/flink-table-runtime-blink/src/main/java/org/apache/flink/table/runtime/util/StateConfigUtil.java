@@ -41,6 +41,23 @@ public class StateConfigUtil {
         }
     }
 
+    /**
+     * Creates a {@link StateTtlConfig} depends on retentionTime parameter and RocksDB compaction filter.
+     *
+     * @param retentionTime State ttl time which unit is MILLISECONDS.
+     */
+    public static StateTtlConfig createTtlConfigWithRocksdbCompactFilter(long retentionTime, long queryTimeAfterNumEntries) {
+        if (retentionTime > 0) {
+            return StateTtlConfig.newBuilder(Time.milliseconds(retentionTime))
+                    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+                    .cleanupInRocksdbCompactFilter(queryTimeAfterNumEntries)
+                    .build();
+        } else {
+            return StateTtlConfig.DISABLED;
+        }
+    }
+
     public static boolean isStateImmutableInStateBackend(KeyedStateBackend<?> keyedStateBackend) {
         // TODO: remove the hard code check once FLINK-21027 is supported
         return keyedStateBackend.isStateImmutableInStateBackend(CheckpointType.CHECKPOINT);
