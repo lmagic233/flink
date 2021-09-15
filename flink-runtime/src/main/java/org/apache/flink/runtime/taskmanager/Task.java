@@ -1066,7 +1066,7 @@ public class Task
                         currentState,
                         newState);
             } else {
-                LOG.warn(
+                LOG.error(
                         "{} ({}) switched from {} to {} with failure cause: {}",
                         taskNameWithSubtask,
                         executionId,

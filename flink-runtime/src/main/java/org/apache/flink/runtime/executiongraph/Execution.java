@@ -1443,7 +1443,7 @@ public class Execution
                         targetState);
             } else {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info(
+                    LOG.error(
                             "{} ({}) switched from {} to {} on {}.",
                             getVertex().getTaskNameWithSubtaskIndex(),
                             getAttemptId(),
