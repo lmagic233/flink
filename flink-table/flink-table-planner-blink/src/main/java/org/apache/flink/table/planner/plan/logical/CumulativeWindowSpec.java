@@ -33,6 +33,7 @@ import static org.apache.flink.util.TimeUtils.formatWithHighestUnit;
 public class CumulativeWindowSpec implements WindowSpec {
     public static final String FIELD_NAME_MAX_SIZE = "maxSize";
     public static final String FIELD_NAME_STEP = "step";
+    public static final String FIELD_NAME_INCREMENTAL = "incremental";
 
     @JsonProperty(FIELD_NAME_MAX_SIZE)
     private final Duration maxSize;
@@ -40,19 +41,24 @@ public class CumulativeWindowSpec implements WindowSpec {
     @JsonProperty(FIELD_NAME_STEP)
     private final Duration step;
 
+    @JsonProperty(FIELD_NAME_INCREMENTAL)
+    private final Boolean incremental;
+
     @JsonCreator
     public CumulativeWindowSpec(
             @JsonProperty(FIELD_NAME_MAX_SIZE) Duration maxSize,
-            @JsonProperty(FIELD_NAME_STEP) Duration step) {
+            @JsonProperty(FIELD_NAME_STEP) Duration step,
+            @JsonProperty(FIELD_NAME_INCREMENTAL) Boolean incremental) {
         this.maxSize = checkNotNull(maxSize);
         this.step = checkNotNull(step);
+        this.incremental = checkNotNull(incremental);
     }
 
     @Override
     public String toSummaryString(String windowing) {
         return String.format(
-                "CUMULATE(%s, max_size=[%s], step=[%s])",
-                windowing, formatWithHighestUnit(maxSize), formatWithHighestUnit(step));
+                "CUMULATE(%s, max_size=[%s], step=[%s], incremental=[%s])",
+                windowing, formatWithHighestUnit(maxSize), formatWithHighestUnit(step), incremental);
     }
 
     public Duration getMaxSize() {
@@ -61,6 +67,10 @@ public class CumulativeWindowSpec implements WindowSpec {
 
     public Duration getStep() {
         return step;
+    }
+
+    public Boolean getIncremental() {
+        return incremental;
     }
 
     @Override
@@ -72,18 +82,18 @@ public class CumulativeWindowSpec implements WindowSpec {
             return false;
         }
         CumulativeWindowSpec that = (CumulativeWindowSpec) o;
-        return maxSize.equals(that.maxSize) && step.equals(that.step);
+        return maxSize.equals(that.maxSize) && step.equals(that.step) && incremental.equals(that.incremental);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(CumulativeWindowSpec.class, maxSize, step);
+        return Objects.hash(CumulativeWindowSpec.class, maxSize, step, incremental);
     }
 
     @Override
     public String toString() {
         return String.format(
-                "CUMULATE(max_size=[%s], step=[%s])",
-                formatWithHighestUnit(maxSize), formatWithHighestUnit(step));
+                "CUMULATE(max_size=[%s], step=[%s], incremental=[%s])",
+                formatWithHighestUnit(maxSize), formatWithHighestUnit(step), incremental);
     }
 }

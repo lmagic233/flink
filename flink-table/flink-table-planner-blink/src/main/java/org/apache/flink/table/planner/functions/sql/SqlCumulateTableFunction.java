@@ -45,8 +45,8 @@ public class SqlCumulateTableFunction extends SqlWindowTableFunction {
         OperandMetadataImpl() {
             super(
                     ImmutableList.of(
-                            PARAM_DATA, PARAM_TIMECOL, PARAM_STEP, PARAM_SIZE, PARAM_OFFSET),
-                    4);
+                            PARAM_DATA, PARAM_TIMECOL, PARAM_STEP, PARAM_SIZE, PARAM_INCREMENTAL, PARAM_OFFSET),
+                    5);
         }
 
         @Override
@@ -54,10 +54,10 @@ public class SqlCumulateTableFunction extends SqlWindowTableFunction {
             if (!checkTableAndDescriptorOperands(callBinding, 1)) {
                 return throwValidationSignatureErrorOrReturnFalse(callBinding, throwOnFailure);
             }
-            if (!checkIntervalOperands(callBinding, 2)) {
+            if (!checkIntervalOperands(callBinding, 2, callBinding.getOperandCount() - 1)) {
                 return throwValidationSignatureErrorOrReturnFalse(callBinding, throwOnFailure);
             }
-            if (callBinding.getOperandCount() == 5) {
+            if (callBinding.getOperandCount() == 6) {
                 return throwValidationSignatureErrorOrReturnFalse(callBinding, throwOnFailure);
             }
             // check time attribute
@@ -69,7 +69,7 @@ public class SqlCumulateTableFunction extends SqlWindowTableFunction {
         public String getAllowedSignatures(SqlOperator op, String opName) {
             return opName
                     + "(TABLE table_name, DESCRIPTOR(timecol), "
-                    + "datetime interval, datetime interval)";
+                    + "datetime interval, datetime interval, <BOOLEAN>)";
         }
     }
 }

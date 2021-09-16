@@ -24,12 +24,17 @@ import org.apache.flink.table.runtime.generated.GeneratedNamespaceAggsHandleFunc
 import org.apache.flink.table.runtime.operators.aggregate.window.buffers.WindowBuffer;
 import org.apache.flink.table.runtime.operators.window.slicing.SliceAssigner;
 import org.apache.flink.table.runtime.operators.window.slicing.SliceAssigners;
+import org.apache.flink.table.runtime.operators.window.slicing.SliceAssigners.CumulativeSliceAssigner;
+import org.apache.flink.table.runtime.operators.window.slicing.SliceAssigners.HoppingSliceAssigner;
 import org.apache.flink.table.runtime.operators.window.slicing.SliceSharedAssigner;
+import org.apache.flink.types.Row;
 
 import javax.annotation.Nullable;
 
 import java.io.Serializable;
 import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -68,7 +73,15 @@ public final class SliceSharedWindowAggProcessor extends AbstractWindowAggProces
         if (!isWindowEmpty()) {
             // for hopping windows, the triggered window may be an empty window
             // (see register next window below), for such window, we shouldn't emit it
-            collect(aggResult);
+            if (sliceSharedAssigner instanceof CumulativeSliceAssigner
+                    && ((CumulativeSliceAssigner) sliceSharedAssigner).isIncremental()) {
+                RowData stateValue = windowState.value(windowEnd);
+                if (stateValue == null || !stateValue.equals(aggResult)) {
+                    collect(aggResult);
+                }
+            } else {
+                collect(aggResult);
+            }
         }
 
         // we should register next window timer here,

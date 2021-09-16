@@ -91,9 +91,9 @@ public final class SliceAssigners {
      * @param step the step interval of the generated windows.
      */
     public static CumulativeSliceAssigner cumulative(
-            int rowtimeIndex, ZoneId shiftTimeZone, Duration maxSize, Duration step) {
+            int rowtimeIndex, ZoneId shiftTimeZone, Duration maxSize, Duration step, Boolean incremental) {
         return new CumulativeSliceAssigner(
-                rowtimeIndex, shiftTimeZone, maxSize.toMillis(), step.toMillis(), 0);
+                rowtimeIndex, shiftTimeZone, maxSize.toMillis(), step.toMillis(), incremental, 0);
     }
 
     /**
@@ -284,17 +284,18 @@ public final class SliceAssigners {
         /** Creates a new {@link CumulativeSliceAssigner} with a new specified offset. */
         public CumulativeSliceAssigner withOffset(Duration offset) {
             return new CumulativeSliceAssigner(
-                    rowtimeIndex, shiftTimeZone, maxSize, step, offset.toMillis());
+                    rowtimeIndex, shiftTimeZone, maxSize, step, incremental, offset.toMillis());
         }
 
         private final long maxSize;
         private final long step;
         private final long offset;
+        private final boolean incremental;
         private final ReusableListIterable reuseToBeMergedList = new ReusableListIterable();
         private final ReusableListIterable reuseExpiredList = new ReusableListIterable();
 
         protected CumulativeSliceAssigner(
-                int rowtimeIndex, ZoneId shiftTimeZone, long maxSize, long step, long offset) {
+                int rowtimeIndex, ZoneId shiftTimeZone, long maxSize, long step, boolean incremental, long offset) {
             super(rowtimeIndex, shiftTimeZone);
             if (maxSize <= 0 || step <= 0) {
                 throw new IllegalArgumentException(
@@ -312,6 +313,7 @@ public final class SliceAssigners {
             this.maxSize = maxSize;
             this.step = step;
             this.offset = offset;
+            this.incremental = incremental;
         }
 
         @Override
@@ -378,6 +380,10 @@ public final class SliceAssigners {
             } else {
                 return Optional.of(nextWindowEnd);
             }
+        }
+
+        public boolean isIncremental() {
+            return incremental;
         }
     }
 

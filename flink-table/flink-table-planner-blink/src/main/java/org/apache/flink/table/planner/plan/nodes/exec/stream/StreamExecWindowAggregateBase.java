@@ -117,6 +117,7 @@ public abstract class StreamExecWindowAggregateBase extends StreamExecAggregateB
         } else if (windowSpec instanceof CumulativeWindowSpec) {
             Duration maxSize = ((CumulativeWindowSpec) windowSpec).getMaxSize();
             Duration step = ((CumulativeWindowSpec) windowSpec).getStep();
+            Boolean incremental = ((CumulativeWindowSpec) windowSpec).getIncremental();
             if (maxSize.toMillis() % step.toMillis() != 0) {
                 throw new TableException(
                         String.format(
@@ -124,7 +125,7 @@ public abstract class StreamExecWindowAggregateBase extends StreamExecAggregateB
                                         + "integral multiple of step, but got maxSize %s ms and step %s ms",
                                 maxSize.toMillis(), step.toMillis()));
             }
-            return SliceAssigners.cumulative(timeAttributeIndex, shiftTimeZone, maxSize, step);
+            return SliceAssigners.cumulative(timeAttributeIndex, shiftTimeZone, maxSize, step, incremental);
 
         } else {
             throw new UnsupportedOperationException(windowSpec + " is not supported yet.");

@@ -248,6 +248,13 @@ public class ExecutionConfigOptions {
                     .withDescription(
                             "Sets the window elements buffer size limit used in group window agg operator.");
 
+    /* @Documentation.TableOption(execMode = Documentation.ExecMode.STREAMING)
+    public static final ConfigOption<Boolean> TABLE_EXEC_WINDOW_AGG_INCREMENTAL_OUTPUT_ONLY =
+            key("table.exec.window-agg.incremental-output-only")
+                    .defaultValue(false)
+                    .withDescription(
+                            "Indicates whether to output incrementally aggregated results when using shared-slice windows (e.g. HOP, CUMULATE)."); */
+
     // ------------------------------------------------------------------------
     //  Lookup Options
     // ------------------------------------------------------------------------

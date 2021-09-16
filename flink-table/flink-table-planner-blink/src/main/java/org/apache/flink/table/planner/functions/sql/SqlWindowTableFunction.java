@@ -83,6 +83,9 @@ public class SqlWindowTableFunction extends SqlFunction implements SqlTableFunct
     /** The slide interval, only used for HOP window. */
     protected static final String PARAM_STEP = "STEP";
 
+    /** Whether to output incremental result with each slice, only used for CUMULATE window. */
+    protected static final String PARAM_INCREMENTAL = "INCREMENTAL";
+
     /**
      * Type-inference strategy whereby the row type of a table function call is a ROW, which is
      * combined from the row type of operand #0 (which is a TABLE) and two additional fields. The
@@ -305,8 +308,12 @@ public class SqlWindowTableFunction extends SqlFunction implements SqlTableFunct
          * @return true if validation passes
          */
         boolean checkIntervalOperands(SqlCallBinding callBinding, int startPos) {
+            return checkIntervalOperands(callBinding, startPos, callBinding.getOperandCount());
+        }
+
+        boolean checkIntervalOperands(SqlCallBinding callBinding, int startPos, int endPos) {
             final SqlValidator validator = callBinding.getValidator();
-            for (int i = startPos; i < callBinding.getOperandCount(); i++) {
+            for (int i = startPos; i < endPos; i++) {
                 final RelDataType type = validator.getValidatedNodeType(callBinding.operand(i));
                 if (!SqlTypeUtil.isInterval(type)) {
                     return false;
