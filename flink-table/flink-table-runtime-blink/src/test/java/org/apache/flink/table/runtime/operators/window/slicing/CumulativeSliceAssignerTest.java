@@ -49,7 +49,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testSliceAssignment() {
         SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofDays(1), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofDays(1), Duration.ofHours(1), false);
 
         assertEquals(
                 utcMills("1970-01-01T01:00:00"),
@@ -66,7 +66,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testSliceAssignmentWithOffset() {
         SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                                0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1))
+                                0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false)
                         .withOffset(Duration.ofMillis(100));
 
         assertEquals(
@@ -87,7 +87,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
         }
         SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(4), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(4), Duration.ofHours(1), false);
 
         // Los_Angeles local time in epoch mills.
         // The DaylightTime in Los_Angele start at time 2021-03-14 02:00:00
@@ -122,7 +122,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testGetWindowStart() {
         SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false);
 
         assertEquals(
                 utcMills("1969-12-31T19:00:00"),
@@ -154,7 +154,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testExpiredSlices() {
         SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false);
 
         // reuse the first slice, skip to cleanup it
         assertEquals(
@@ -189,7 +189,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testMerge() throws Exception {
         SliceAssigners.CumulativeSliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false);
 
         assertEquals(
                 Long.valueOf(utcMills("1970-01-01T01:00:00")),
@@ -259,7 +259,7 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
     public void testNextTriggerWindow() {
         SliceAssigners.CumulativeSliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false);
 
         assertEquals(
                 Optional.empty(),
@@ -313,12 +313,12 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
         }
         SliceAssigner assigner1 =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(1));
+                        0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(1), false);
         assertTrue(assigner1.isEventTime());
 
         SliceAssigner assigner2 =
                 SliceAssigners.cumulative(
-                        -1, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(1));
+                        -1, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(1), false);
         assertFalse(assigner2.isEventTime());
     }
 
@@ -327,19 +327,19 @@ public class CumulativeSliceAssignerTest extends SliceAssignerTestBase {
         assertErrorMessage(
                 () ->
                         SliceAssigners.cumulative(
-                                0, shiftTimeZone, Duration.ofSeconds(-5), Duration.ofSeconds(1)),
+                                0, shiftTimeZone, Duration.ofSeconds(-5), Duration.ofSeconds(1), false),
                 "Cumulative Window parameters must satisfy maxSize > 0 and step > 0, but got maxSize -5000ms and step 1000ms.");
 
         assertErrorMessage(
                 () ->
                         SliceAssigners.cumulative(
-                                0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(-1)),
+                                0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(-1), false),
                 "Cumulative Window parameters must satisfy maxSize > 0 and step > 0, but got maxSize 5000ms and step -1000ms.");
 
         assertErrorMessage(
                 () ->
                         SliceAssigners.cumulative(
-                                0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(2)),
+                                0, shiftTimeZone, Duration.ofSeconds(5), Duration.ofSeconds(2), false),
                 "Cumulative Window requires maxSize must be an integral multiple of step, but got maxSize 5000ms and step 2000ms.");
 
         // should pass

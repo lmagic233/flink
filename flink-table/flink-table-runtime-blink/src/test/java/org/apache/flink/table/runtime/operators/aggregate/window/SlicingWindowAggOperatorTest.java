@@ -346,7 +346,7 @@ public class SlicingWindowAggOperatorTest {
     public void testEventTimeCumulativeWindows() throws Exception {
         final SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        2, shiftTimeZone, Duration.ofSeconds(3), Duration.ofSeconds(1));
+                        2, shiftTimeZone, Duration.ofSeconds(3), Duration.ofSeconds(1), false);
         final SumAndCountAggsFunction aggsFunction = new SumAndCountAggsFunction(assigner);
         SlicingWindowOperator<RowData, ?> operator =
                 SlicingWindowAggOperatorBuilder.builder()
@@ -455,7 +455,7 @@ public class SlicingWindowAggOperatorTest {
     public void testProcessingTimeCumulativeWindows() throws Exception {
         final SliceAssigner assigner =
                 SliceAssigners.cumulative(
-                        -1, shiftTimeZone, Duration.ofDays(1), Duration.ofHours(8));
+                        -1, shiftTimeZone, Duration.ofDays(1), Duration.ofHours(8), false);
         final SumAndCountAggsFunction aggsFunction = new SumAndCountAggsFunction(assigner);
         SlicingWindowOperator<RowData, ?> operator =
                 SlicingWindowAggOperatorBuilder.builder()
