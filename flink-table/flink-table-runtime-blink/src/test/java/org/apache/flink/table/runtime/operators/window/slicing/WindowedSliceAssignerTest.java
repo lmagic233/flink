@@ -54,7 +54,7 @@ public class WindowedSliceAssignerTest extends SliceAssignerTestBase {
                 SliceAssigners.hopping(0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
         this.cumulateAssigner =
                 SliceAssigners.cumulative(
-                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1));
+                        0, shiftTimeZone, Duration.ofHours(5), Duration.ofHours(1), false);
     }
 
     @Test
