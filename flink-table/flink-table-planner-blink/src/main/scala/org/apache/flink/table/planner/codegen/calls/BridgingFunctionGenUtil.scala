@@ -147,7 +147,7 @@ object BridgingFunctionGenUtil {
         externalOperands,
         returnType)
     } else {
-      generateScalarFunctionCall(ctx, functionTerm, externalOperands, outputDataType)
+      generateScalarFunctionCall(ctx, functionTerm, externalOperands, outputDataType, udf.isDeterministic)
     }
   }
 
@@ -272,7 +272,8 @@ object BridgingFunctionGenUtil {
       ctx: CodeGeneratorContext,
       functionTerm: String,
       externalOperands: Seq[GeneratedExpression],
-      outputDataType: DataType)
+      outputDataType: DataType,
+      isDeterministic: Boolean)
     : GeneratedExpression = {
 
     // result conversion
@@ -288,16 +289,42 @@ object BridgingFunctionGenUtil {
       s"($externalResultTypeTerm) (${typeTerm(externalResultClassBoxed)})"
     }
     val externalResultTerm = ctx.addReusableLocalVariable(externalResultTypeTerm, "externalResult")
-    val internalExpr = genToInternalConverterAll(ctx, outputDataType, externalResultTerm)
 
-    // function call
-    internalExpr.copy(code =
-      s"""
-        |${externalOperands.map(_.code).mkString("\n")}
-        |$externalResultTerm = $externalResultCasting $functionTerm
-        |  .$SCALAR_EVAL(${externalOperands.map(_.resultTerm).mkString(", ")});
-        |${internalExpr.code}
-        |""".stripMargin)
+    if (isDeterministic) {
+      val funcEvalCode =
+        s"""
+           |$externalResultCasting $functionTerm
+           |  .$SCALAR_EVAL(${externalOperands.map(_.resultTerm).map(ctx.reuseResultTerm).mkString(", ")});
+           |""".stripMargin
+
+      val reusableFuncExpr = ctx.reuseScalarFuncExpr(funcEvalCode)
+      if (!reusableFuncExpr.equals(funcEvalCode)) {
+        ctx.addReusableResultTerm(externalResultTerm, reusableFuncExpr)
+      }
+
+      ctx.addReusableScalarFuncExpr(funcEvalCode, externalResultTerm)
+
+      val internalExpr = genToInternalConverterAll(ctx, outputDataType, externalResultTerm)
+
+      // function call
+      internalExpr.copy(code =
+        s"""
+           |${externalOperands.map(_.code).mkString("\n")}
+           |$externalResultTerm = $reusableFuncExpr;
+           |${internalExpr.code}
+           |""".stripMargin)
+    } else {
+      val internalExpr = genToInternalConverterAll(ctx, outputDataType, externalResultTerm)
+
+      // function call
+      internalExpr.copy(code =
+        s"""
+           |${externalOperands.map(_.code).mkString("\n")}
+           |$externalResultTerm = $externalResultCasting $functionTerm
+           |  .$SCALAR_EVAL(${externalOperands.map(_.resultTerm).mkString(", ")});
+           |${internalExpr.code}
+           |""".stripMargin)
+    }
   }
 
   private def prepareExternalOperands(

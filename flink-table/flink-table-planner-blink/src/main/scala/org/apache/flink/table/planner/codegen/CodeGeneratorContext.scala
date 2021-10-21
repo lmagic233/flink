@@ -115,6 +115,12 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
   private val reusableExternalSerializers: mutable.Map[DataType, String] =
     mutable.Map[DataType,  String]()
 
+  private val reusableScalarFuncExprs: mutable.Map[String, String] =
+    mutable.Map[String, String]()
+
+  private val reusableResultTerms: mutable.Map[String, String] =
+    mutable.Map[String, String]()
+
   /**
     * The current method name for [[reusableLocalVariableStatements]]. You can start a new
     * local variable statements for another method using [[startNewLocalVariableStatement()]]
@@ -322,6 +328,14 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
          |}
          |""".stripMargin
     }.mkString("\n")
+  }
+
+  def reuseScalarFuncExpr(code: String) : String = {
+    reusableScalarFuncExprs.getOrElse(code, code)
+  }
+
+  def reuseResultTerm(term: String) : String = {
+    reusableResultTerms.getOrElse(term, term)
   }
 
   def setOperatorBaseClass(operatorBaseClass: Class[_]): CodeGeneratorContext = {
@@ -967,6 +981,18 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
     reusableInitStatements.add(nullableInit)
 
     fieldTerm
+  }
+
+  def addReusableScalarFuncExpr(code: String, term: String): Unit = {
+    if (!reusableScalarFuncExprs.contains(code)) {
+      reusableScalarFuncExprs.put(code, term)
+    }
+  }
+
+  def addReusableResultTerm(term: String, originalTerm: String): Unit = {
+    if (!reusableResultTerms.contains(term)) {
+      reusableResultTerms.put(term, originalTerm);
+    }
   }
 }
 
