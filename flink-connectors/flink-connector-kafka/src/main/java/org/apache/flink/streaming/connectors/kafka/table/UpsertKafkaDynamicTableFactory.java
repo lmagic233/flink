@@ -132,7 +132,8 @@ public class UpsertKafkaDynamicTableFactory
                 earliest,
                 Collections.emptyMap(),
                 0,
-                true);
+                true,
+                null);
     }
 
     @Override

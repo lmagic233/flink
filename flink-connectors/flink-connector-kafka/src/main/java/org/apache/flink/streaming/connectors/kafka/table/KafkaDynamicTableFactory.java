@@ -83,6 +83,7 @@ import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.get
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.getStartupOptions;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSinkOptions;
 import static org.apache.flink.streaming.connectors.kafka.table.KafkaOptions.validateTableSourceOptions;
+import static org.apache.flink.table.factories.FactoryUtil.SCAN_PARALLELISM;
 import static org.apache.flink.table.factories.FactoryUtil.SINK_PARALLELISM;
 
 /**
@@ -126,6 +127,7 @@ public class KafkaDynamicTableFactory
         options.add(SINK_PARTITIONER);
         options.add(SINK_SEMANTIC);
         options.add(SINK_PARALLELISM);
+        options.add(SCAN_PARALLELISM);
         return options;
     }
 
@@ -170,6 +172,8 @@ public class KafkaDynamicTableFactory
 
         final String keyPrefix = tableOptions.getOptional(KEY_FIELDS_PREFIX).orElse(null);
 
+        final Integer parallelism = tableOptions.getOptional(SCAN_PARALLELISM).orElse(null);
+
         return createKafkaTableSource(
                 physicalDataType,
                 keyDecodingFormat.orElse(null),
@@ -182,7 +186,8 @@ public class KafkaDynamicTableFactory
                 properties,
                 startupOptions.startupMode,
                 startupOptions.specificOffsets,
-                startupOptions.startupTimestampMillis);
+                startupOptions.startupTimestampMillis,
+                parallelism);
     }
 
     @Override
@@ -319,7 +324,8 @@ public class KafkaDynamicTableFactory
             Properties properties,
             StartupMode startupMode,
             Map<KafkaTopicPartition, Long> specificStartupOffsets,
-            long startupTimestampMillis) {
+            long startupTimestampMillis,
+            Integer parallelism) {
         return new KafkaDynamicSource(
                 physicalDataType,
                 keyDecodingFormat,
@@ -333,7 +339,8 @@ public class KafkaDynamicTableFactory
                 startupMode,
                 specificStartupOffsets,
                 startupTimestampMillis,
-                false);
+                false,
+                parallelism);
     }
 
     protected KafkaDynamicSink createKafkaTableSink(

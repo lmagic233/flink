@@ -22,8 +22,14 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.connector.source.Source;
 import org.apache.flink.api.dag.Transformation;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.table.api.TableConfig;
+import org.apache.flink.table.api.TableException;
+import org.apache.flink.table.api.config.ExecutionConfigOptions;
+import org.apache.flink.table.connector.ParallelismProvider;
 import org.apache.flink.table.connector.source.DataStreamScanProvider;
 import org.apache.flink.table.connector.source.InputFormatProvider;
 import org.apache.flink.table.connector.source.ScanTableSource;
@@ -36,6 +42,7 @@ import org.apache.flink.table.planner.plan.nodes.exec.ExecNode;
 import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeBase;
 import org.apache.flink.table.planner.plan.nodes.exec.MultipleTransformationTranslator;
 import org.apache.flink.table.planner.plan.nodes.exec.spec.DynamicTableSourceSpec;
+import org.apache.flink.table.planner.sinks.DataStreamTableSink;
 import org.apache.flink.table.runtime.connector.source.ScanRuntimeProviderContext;
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo;
 import org.apache.flink.table.types.logical.LogicalType;
@@ -44,6 +51,7 @@ import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Base {@link ExecNode} to read data from an external source defined by a {@link ScanTableSource}.
@@ -80,7 +88,21 @@ public abstract class CommonExecTableSourceScan extends ExecNodeBase<RowData>
         if (provider instanceof SourceFunctionProvider) {
             SourceFunction<RowData> sourceFunction =
                     ((SourceFunctionProvider) provider).createSourceFunction();
-            return env.addSource(sourceFunction, operatorName, outputTypeInfo).getTransformation();
+            DataStreamSource<RowData> streamSource = env.addSource(
+                    sourceFunction, operatorName, outputTypeInfo);
+
+            final Configuration config = planner.getTableConfig().getConfiguration();
+            if (config.get(ExecutionConfigOptions.TABLE_EXEC_SOURCE_FORCE_BREAK_CHAIN)) {
+                streamSource.disableChaining();
+            }
+
+            final int confParallelism = streamSource.getParallelism();
+            final int sourceParallelism = deriveSourceParallelism(
+                    (ParallelismProvider) provider, confParallelism);
+            
+            Transformation<RowData> transformation = streamSource.getTransformation();
+            transformation.setParallelism(sourceParallelism);
+            return transformation;
         } else if (provider instanceof InputFormatProvider) {
             InputFormat<RowData, ?> inputFormat =
                     ((InputFormatProvider) provider).createInputFormat();
@@ -116,4 +138,29 @@ public abstract class CommonExecTableSourceScan extends ExecNodeBase<RowData>
             InputFormat<RowData, ?> inputFormat,
             InternalTypeInfo<RowData> outputTypeInfo,
             String name);
+
+    /**
+     * Returns the parallelism of source operator, it assumes the source runtime provider implements
+     * {@link ParallelismProvider}. It returns parallelism defined in {@link ParallelismProvider} if
+     * the parallelism is provided, otherwise it uses parallelism in configuration.
+     */
+    private int deriveSourceParallelism(
+            ParallelismProvider parallelismProvider, int confParallelism) {
+        final Optional<Integer> parallelismOptional = parallelismProvider.getParallelism();
+        if (parallelismOptional.isPresent()) {
+            int sourceParallelism = parallelismOptional.get();
+            if (sourceParallelism <= 0) {
+                throw new TableException(
+                        String.format(
+                                "Table: %s configured source parallelism: "
+                                        + "%s should not be less than zero or equal to zero",
+                                tableSourceSpec.getObjectIdentifier().asSummaryString(),
+                                sourceParallelism));
+            }
+            return sourceParallelism;
+        } else {
+            // use configured parallelism if not specified
+            return confParallelism;
+        }
+    }
 }

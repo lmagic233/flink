@@ -18,8 +18,11 @@
 
 package org.apache.flink.table.planner.plan.nodes.exec.common;
 
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.dag.Transformation;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.transformations.OneInputTransformation;
+import org.apache.flink.table.api.config.ExecutionConfigOptions;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.planner.codegen.CalcCodeGenerator;
 import org.apache.flink.table.planner.codegen.CodeGeneratorContext;
@@ -99,11 +102,21 @@ public abstract class CommonExecCalc extends ExecNodeBase<RowData>
                         JavaScalaConversionUtil.toScala(Optional.ofNullable(this.condition)),
                         retainHeader,
                         getClass().getSimpleName());
+
+        int parallelism = inputTransform.getParallelism();
+
+        if (inputEdge.getSource() instanceof CommonExecTableSourceScan) {
+            final Configuration config = planner.getTableConfig().getConfiguration();
+            if (config.get(ExecutionConfigOptions.TABLE_EXEC_SOURCE_FORCE_BREAK_CHAIN)) {
+                parallelism = ExecutionConfig.PARALLELISM_DEFAULT;
+            }
+        }
+
         return new OneInputTransformation<>(
                 inputTransform,
                 getDescription(),
                 substituteStreamOperator,
                 InternalTypeInfo.of(getOutputType()),
-                inputTransform.getParallelism());
+                parallelism);
     }
 }
