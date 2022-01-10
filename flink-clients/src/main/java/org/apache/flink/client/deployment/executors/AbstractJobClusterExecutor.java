@@ -84,7 +84,7 @@ public class AbstractJobClusterExecutor<
 
             return CompletableFuture.completedFuture(
                     new ClusterClientJobClientAdapter<>(
-                            clusterClientProvider, jobGraph.getJobID(), userCodeClassloader));
+                            clusterClientProvider, jobGraph.getJobID(), userCodeClassloader, pipeline));
         }
     }
 }

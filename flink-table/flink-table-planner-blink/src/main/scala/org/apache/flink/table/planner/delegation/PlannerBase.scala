@@ -160,7 +160,13 @@ abstract class PlannerBase(
     }
 
     val relNodes = modifyOperations.map(translateToRel)
+
+    // val relNode = relNodes.head
+    // val columnOrigin0 = relNode.getCluster.getMetadataQuery.getColumnOrigins(relNode.getInput(0), 0)
+    // val columnOrigin1 = relNode.getCluster.getMetadataQuery.getColumnOrigins(relNode.getInput(0), 1)
+
     val optimizedRelNodes = optimize(relNodes)
+
     val execGraph = translateToExecNodeGraph(optimizedRelNodes)
     val transformations = translateToPlan(execGraph)
     cleanupInternalConfigurations()

@@ -619,13 +619,19 @@ public final class Schema {
     /** Super class for all kinds of columns in an unresolved schema. */
     public abstract static class UnresolvedColumn {
         final String columnName;
+        final @Nullable String comment;
 
-        UnresolvedColumn(String columnName) {
+        UnresolvedColumn(String columnName, @Nullable String comment) {
             this.columnName = columnName;
+            this.comment = comment;
         }
 
         public String getName() {
             return columnName;
+        }
+
+        public Optional<String> getComment() {
+            return Optional.ofNullable(comment);
         }
 
         @Override
@@ -642,7 +648,7 @@ public final class Schema {
                 return false;
             }
             UnresolvedColumn that = (UnresolvedColumn) o;
-            return columnName.equals(that.columnName);
+            return columnName.equals(that.columnName) && Objects.equals(comment, that.comment);
         }
 
         @Override
@@ -660,7 +666,11 @@ public final class Schema {
         private final AbstractDataType<?> dataType;
 
         UnresolvedPhysicalColumn(String columnName, AbstractDataType<?> dataType) {
-            super(columnName);
+            this(columnName, dataType, null);
+        }
+
+        UnresolvedPhysicalColumn(String columnName, AbstractDataType<?> dataType, String comment) {
+            super(columnName, comment);
             this.dataType = dataType;
         }
 
@@ -670,7 +680,13 @@ public final class Schema {
 
         @Override
         public String toString() {
-            return String.format("%s %s", super.toString(), dataType.toString());
+            String str = String.format("%s %s", super.toString(), dataType.toString());
+
+            if (!StringUtils.isNullOrWhitespaceOnly(comment)) {
+                str += String.format(" COMMENT '%s'", EncodingUtils.escapeSingleQuotes(comment));
+            }
+
+            return str;
         }
 
         @Override
@@ -703,7 +719,11 @@ public final class Schema {
         private final Expression expression;
 
         UnresolvedComputedColumn(String columnName, Expression expression) {
-            super(columnName);
+            this(columnName, expression, null);
+        }
+
+        UnresolvedComputedColumn(String columnName, Expression expression, String comment) {
+            super(columnName, comment);
             this.expression = expression;
         }
 
@@ -713,7 +733,13 @@ public final class Schema {
 
         @Override
         public String toString() {
-            return String.format("%s AS %s", super.toString(), expression.asSummaryString());
+            String str = String.format("%s AS %s", super.toString(), expression.asSummaryString());
+
+            if (!StringUtils.isNullOrWhitespaceOnly(comment)) {
+                str += String.format(" COMMENT '%s'", EncodingUtils.escapeSingleQuotes(comment));
+            }
+
+            return str;
         }
 
         @Override
@@ -752,7 +778,16 @@ public final class Schema {
                 AbstractDataType<?> dataType,
                 @Nullable String metadataKey,
                 boolean isVirtual) {
-            super(columnName);
+            this(columnName, dataType, metadataKey, isVirtual, null);
+        }
+
+        UnresolvedMetadataColumn(
+                String columnName,
+                AbstractDataType<?> dataType,
+                @Nullable String metadataKey,
+                boolean isVirtual,
+                String comment) {
+            super(columnName, comment);
             this.dataType = dataType;
             this.metadataKey = metadataKey;
             this.isVirtual = isVirtual;
@@ -782,6 +817,9 @@ public final class Schema {
             }
             if (isVirtual) {
                 sb.append(" VIRTUAL");
+            }
+            if (!StringUtils.isNullOrWhitespaceOnly(comment)) {
+                sb.append(String.format(" COMMENT '%s'", EncodingUtils.escapeSingleQuotes(comment)));
             }
             return sb.toString();
         }

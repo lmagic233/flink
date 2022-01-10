@@ -82,6 +82,10 @@ public class KafkaTopicsDescriptor implements Serializable {
         return fixedTopics;
     }
 
+    public Pattern getTopicPattern() {
+        return topicPattern;
+    }
+
     @Override
     public String toString() {
         return (fixedTopics == null)

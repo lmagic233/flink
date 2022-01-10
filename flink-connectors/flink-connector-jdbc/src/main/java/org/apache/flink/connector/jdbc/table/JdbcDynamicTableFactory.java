@@ -141,6 +141,11 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
                     .intType()
                     .defaultValue(3)
                     .withDescription("The max retry times if lookup database failed.");
+    private static final ConfigOption<Duration> LOOKUP_DELAY =
+            ConfigOptions.key("lookup.delay")
+                    .durationType()
+                    .defaultValue(Duration.ofMillis(0))
+                    .withDescription("The max retry times if lookup database failed.");
 
     // write config options
     private static final ConfigOption<Integer> SINK_BUFFER_FLUSH_MAX_ROWS =
@@ -237,7 +242,8 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         return new JdbcLookupOptions(
                 readableConfig.get(LOOKUP_CACHE_MAX_ROWS),
                 readableConfig.get(LOOKUP_CACHE_TTL).toMillis(),
-                readableConfig.get(LOOKUP_MAX_RETRIES));
+                readableConfig.get(LOOKUP_MAX_RETRIES),
+                readableConfig.get(LOOKUP_DELAY).toMillis());
     }
 
     private JdbcExecutionOptions getJdbcExecutionOptions(ReadableConfig config) {
@@ -290,6 +296,7 @@ public class JdbcDynamicTableFactory implements DynamicTableSourceFactory, Dynam
         optionalOptions.add(LOOKUP_CACHE_MAX_ROWS);
         optionalOptions.add(LOOKUP_CACHE_TTL);
         optionalOptions.add(LOOKUP_MAX_RETRIES);
+        optionalOptions.add(LOOKUP_DELAY);
         optionalOptions.add(SINK_BUFFER_FLUSH_MAX_ROWS);
         optionalOptions.add(SINK_BUFFER_FLUSH_INTERVAL);
         optionalOptions.add(SINK_MAX_RETRIES);

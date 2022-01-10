@@ -18,6 +18,8 @@
 
 package org.apache.flink.table.planner.operations;
 
+import org.apache.calcite.rel.RelNode;
+
 import org.apache.flink.sql.parser.ddl.SqlAddPartitions;
 import org.apache.flink.sql.parser.ddl.SqlAddReplaceColumns;
 import org.apache.flink.sql.parser.ddl.SqlAlterDatabase;
@@ -172,6 +174,9 @@ public class SqlToOperationConverter {
     private final FlinkPlannerImpl flinkPlanner;
     private final CatalogManager catalogManager;
     private final SqlCreateTableConverter createTableConverter;
+
+    private transient RelNode queryOperationRelNode;
+    private transient RelNode insertOperationRelNode;
 
     // ~ Constructors -----------------------------------------------------------
 
@@ -602,6 +607,8 @@ public class SqlToOperationConverter {
                                                                         .getClass()
                                                                         .getSimpleName()));
 
+        this.insertOperationRelNode = query.getCalciteTree();
+
         return new CatalogSinkModifyOperation(
                 identifier,
                 query,
@@ -965,6 +972,7 @@ public class SqlToOperationConverter {
     private PlannerQueryOperation toQueryOperation(FlinkPlannerImpl planner, SqlNode validated) {
         // transform to a relational tree
         RelRoot relational = planner.rel(validated);
+        this.queryOperationRelNode = relational.rel;
         return new PlannerQueryOperation(relational.project());
     }
 }

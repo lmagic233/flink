@@ -22,7 +22,9 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.table.catalog.Column;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.utils.EncodingUtils;
 import org.apache.flink.util.Preconditions;
+import org.apache.flink.util.StringUtils;
 
 import javax.annotation.Nullable;
 
@@ -45,24 +47,41 @@ public abstract class TableColumn {
 
     private final DataType type;
 
+    private final @Nullable String comment;
+
     private TableColumn(String name, DataType type) {
+        this(name, type, null);
+    }
+
+    private TableColumn(String name, DataType type, @Nullable String comment) {
         this.name = name;
         this.type = type;
+        this.comment = comment;
     }
 
     /** Creates a regular table column that represents physical data. */
     public static PhysicalColumn physical(String name, DataType type) {
+        return physical(name, type, null);
+    }
+
+    /** Creates a regular table column that represents physical data. */
+    public static PhysicalColumn physical(String name, DataType type, @Nullable String comment) {
         Preconditions.checkNotNull(name, "Column name can not be null.");
         Preconditions.checkNotNull(type, "Column type can not be null.");
-        return new PhysicalColumn(name, type);
+        return new PhysicalColumn(name, type, comment);
     }
 
     /** Creates a computed column that is computed from the given SQL expression. */
     public static ComputedColumn computed(String name, DataType type, String expression) {
+        return computed(name, type, expression, null);
+    }
+
+    /** Creates a computed column that is computed from the given SQL expression. */
+    public static ComputedColumn computed(String name, DataType type, String expression, @Nullable String comment) {
         Preconditions.checkNotNull(name, "Column name can not be null.");
         Preconditions.checkNotNull(type, "Column type can not be null.");
         Preconditions.checkNotNull(expression, "Column expression can not be null.");
-        return new ComputedColumn(name, type, expression);
+        return new ComputedColumn(name, type, expression, comment);
     }
 
     /**
@@ -101,9 +120,14 @@ public abstract class TableColumn {
      */
     public static MetadataColumn metadata(
             String name, DataType type, @Nullable String metadataAlias, boolean isVirtual) {
+        return metadata(name, type, metadataAlias, isVirtual, null);
+    }
+
+    public static MetadataColumn metadata(
+            String name, DataType type, @Nullable String metadataAlias, boolean isVirtual, @Nullable String comment) {
         Preconditions.checkNotNull(name, "Column name can not be null.");
         Preconditions.checkNotNull(type, "Column type can not be null.");
-        return new MetadataColumn(name, type, metadataAlias, isVirtual);
+        return new MetadataColumn(name, type, metadataAlias, isVirtual, comment);
     }
 
     /** @deprecated Use {@link #physical(String, DataType)} instead. */
@@ -137,6 +161,10 @@ public abstract class TableColumn {
         return name;
     }
 
+    public Optional<String> getComment() {
+        return Optional.ofNullable(comment);
+    }
+
     /** Returns a string that summarizes this column for printing to a console. */
     public String asSummaryString() {
         final StringBuilder sb = new StringBuilder();
@@ -149,6 +177,9 @@ public abstract class TableColumn {
                             sb.append(" ");
                             sb.append(e);
                         });
+        if (!StringUtils.isNullOrWhitespaceOnly(comment)) {
+            sb.append(String.format(" COMMENT '%s'", EncodingUtils.escapeSingleQuotes(comment)));
+        }
         return sb.toString();
     }
 
@@ -164,7 +195,9 @@ public abstract class TableColumn {
             return false;
         }
         TableColumn that = (TableColumn) o;
-        return Objects.equals(this.name, that.name) && Objects.equals(this.type, that.type);
+        return Objects.equals(this.name, that.name)
+                && Objects.equals(this.type, that.type)
+                && Objects.equals(this.comment, that.comment);
     }
 
     @Override
@@ -186,6 +219,10 @@ public abstract class TableColumn {
 
         private PhysicalColumn(String name, DataType type) {
             super(name, type);
+        }
+
+        private PhysicalColumn(String name, DataType type, @Nullable String comment) {
+            super(name, type, comment);
         }
 
         @Override
@@ -210,7 +247,11 @@ public abstract class TableColumn {
         private final String expression;
 
         private ComputedColumn(String name, DataType type, String expression) {
-            super(name, type);
+            this(name, type, expression, null);
+        }
+
+        private ComputedColumn(String name, DataType type, String expression, @Nullable String comment) {
+            super(name, type, comment);
             this.expression = expression;
         }
 
@@ -263,7 +304,12 @@ public abstract class TableColumn {
 
         private MetadataColumn(
                 String name, DataType type, @Nullable String metadataAlias, boolean isVirtual) {
-            super(name, type);
+            this(name, type, metadataAlias, isVirtual, null);
+        }
+
+        private MetadataColumn(
+                String name, DataType type, @Nullable String metadataAlias, boolean isVirtual, @Nullable String comment) {
+            super(name, type, comment);
             this.metadataAlias = metadataAlias;
             this.isVirtual = isVirtual;
         }

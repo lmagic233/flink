@@ -562,7 +562,8 @@ public class DDLOperationConverter {
         TableColumn newTableColumn =
                 TableColumn.physical(
                         newName,
-                        HiveTypeUtil.toFlinkType(TypeInfoUtils.getTypeInfoFromTypeString(newType)));
+                        HiveTypeUtil.toFlinkType(TypeInfoUtils.getTypeInfoFromTypeString(newType)),
+                        newComment);
         TableSchema newSchema =
                 OperationConverterUtils.changeColumn(
                         oldSchema, oldName, newTableColumn, first, after);
@@ -607,7 +608,8 @@ public class DDLOperationConverter {
                     TableColumn.physical(
                             col.getName(),
                             HiveTypeUtil.toFlinkType(
-                                    TypeInfoUtils.getTypeInfoFromTypeString(col.getType()))));
+                                    TypeInfoUtils.getTypeInfoFromTypeString(col.getType())),
+                            col.getComment()));
         }
         // add part cols
         List<TableColumn> partCols =

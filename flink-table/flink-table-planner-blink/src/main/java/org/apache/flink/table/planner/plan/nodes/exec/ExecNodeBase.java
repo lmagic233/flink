@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.planner.plan.nodes.exec;
 
+import org.apache.flink.annotation.Experimental;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.dag.Transformation;
 import org.apache.flink.table.delegation.Planner;
@@ -28,6 +29,8 @@ import org.apache.flink.table.types.logical.LogicalType;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import org.apache.flink.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,6 +140,26 @@ public abstract class ExecNodeBase<T> implements ExecNode<T> {
                     transformation.setParallelism(1);
                     transformation.setMaxParallelism(1);
                 }
+            }
+        }
+        return transformation;
+    }
+
+    @Experimental
+    public Transformation<T> translateToPlan(Planner planner, int parallelism) {
+        Preconditions.checkArgument(parallelism > 0, "Manually set parallelism must bigger than 0.");
+
+        if (transformation == null) {
+            transformation = translateToPlanInternal((PlannerBase) planner);
+            if (this instanceof SingleTransformationTranslator) {
+                if (inputsContainSingleton()) {
+                    transformation.setParallelism(1);
+                    transformation.setMaxParallelism(1);
+                } else {
+                    transformation.setParallelism(parallelism);
+                }
+            } else {
+                transformation.setParallelism(parallelism);
             }
         }
         return transformation;

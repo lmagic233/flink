@@ -23,6 +23,7 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.api.dag.Transformation;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.core.execution.JobClient;
@@ -1471,6 +1472,10 @@ public class TableEnvironmentImpl implements TableEnvironmentInternal {
         return catalogManager;
     }
 
+    public FunctionCatalog getFunctionCatalog() {
+        return functionCatalog;
+    }
+
     @Override
     public OperationTreeBuilder getOperationTreeBuilder() {
         return operationTreeBuilder;
@@ -1741,6 +1746,25 @@ public class TableEnvironmentImpl implements TableEnvironmentInternal {
                 tableOperation,
                 operationTreeBuilder,
                 functionCatalog.asLookup(getParser()::parseIdentifier));
+    }
+
+    public Tuple3<String, Map<String, String>, QueryOperation> getInsertOperation(String insertStmt) {
+        List<Operation> operations = getParser().parse(insertStmt);
+        if (operations.size() != 1) {
+            throw new TableException(
+                    "Unsupported SQL query! getInsertOperation() only accepts a single INSERT statement.");
+        }
+        Operation operation = operations.get(0);
+        if (operation instanceof CatalogSinkModifyOperation) {
+            CatalogSinkModifyOperation sinkOperation = (CatalogSinkModifyOperation) operation;
+            QueryOperation queryOperation = sinkOperation.getChild();
+            return new Tuple3<>(
+                    sinkOperation.getTableIdentifier().asSummaryString(),
+                    sinkOperation.getDynamicOptions(),
+                    queryOperation);
+        } else {
+            throw new TableException("Only INSERT is supported now.");
+        }
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
+import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.util.FlinkRuntimeException;
 
@@ -50,6 +51,11 @@ public class WebSubmissionJobClient implements JobClient {
     @Override
     public JobID getJobID() {
         return jobId;
+    }
+
+    @Override
+    public Pipeline getPipeline() {
+        return null;
     }
 
     @Override

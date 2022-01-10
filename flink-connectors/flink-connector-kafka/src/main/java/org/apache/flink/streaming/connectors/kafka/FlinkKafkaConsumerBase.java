@@ -1224,4 +1224,8 @@ public abstract class FlinkKafkaConsumerBase<T> extends RichParallelSourceFuncti
                 (Class<Tuple2<KafkaTopicPartition, Long>>) (Class<?>) Tuple2.class;
         return new TupleSerializer<>(tupleClass, fieldSerializers);
     }
+
+    public KafkaTopicsDescriptor getTopicsDescriptor() {
+        return topicsDescriptor;
+    }
 }

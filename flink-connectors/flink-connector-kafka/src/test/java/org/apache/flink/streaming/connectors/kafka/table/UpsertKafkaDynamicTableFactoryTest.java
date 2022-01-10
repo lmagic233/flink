@@ -587,7 +587,8 @@ public class UpsertKafkaDynamicTableFactoryTest extends TestLogger {
                 StartupMode.EARLIEST,
                 Collections.emptyMap(),
                 0,
-                true);
+                true,
+                null);
     }
 
     private static KafkaDynamicSink createExpectedSink(

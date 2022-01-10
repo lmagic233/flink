@@ -201,7 +201,8 @@ class FlinkChangelogModeInferenceProgram extends FlinkOptimizeProgram[StreamOpti
 
       case window: StreamPhysicalGroupWindowAggregateBase =>
         // WindowAggregate and WindowTableAggregate support insert-only in input
-        val children = visitChildren(window, ModifyKindSetTrait.INSERT_ONLY)
+        // val children = visitChildren(window, ModifyKindSetTrait.INSERT_ONLY)
+        val children = visitChildren(window, ModifyKindSetTrait.ALL_CHANGES)
         val builder = ModifyKindSet.newBuilder()
           .addContainedKind(ModifyKind.INSERT)
         if (window.emitStrategy.produceUpdates) {
@@ -470,14 +471,15 @@ class FlinkChangelogModeInferenceProgram extends FlinkOptimizeProgram[StreamOpti
 
       case _: StreamPhysicalGroupAggregate | _: StreamPhysicalGroupTableAggregate |
            _: StreamPhysicalLimit | _: StreamPhysicalPythonGroupAggregate |
-           _: StreamPhysicalPythonGroupTableAggregate =>
+           _: StreamPhysicalPythonGroupTableAggregate |
+           _: StreamPhysicalGroupWindowAggregateBase =>
         // Aggregate, TableAggregate and Limit requires update_before if there are updates
         val requiredChildTrait = beforeAfterOrNone(getModifyKindSet(rel.getInput(0)))
         val children = visitChildren(rel, requiredChildTrait)
         // use requiredTrait as providedTrait, because they should support all kinds of UpdateKind
         createNewNode(rel, children, requiredTrait)
 
-      case _: StreamPhysicalGroupWindowAggregate | _: StreamPhysicalGroupWindowTableAggregate |
+      case // _: StreamPhysicalGroupWindowAggregate | _: StreamPhysicalGroupWindowTableAggregate |
            _: StreamPhysicalWindowAggregate | _: StreamPhysicalWindowRank |
            _: StreamPhysicalDeduplicate | _: StreamPhysicalTemporalSort | _: StreamPhysicalMatch |
            _: StreamPhysicalOverAggregate | _: StreamPhysicalIntervalJoin |

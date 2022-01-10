@@ -22,6 +22,7 @@ import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.api.common.accumulators.AccumulatorHelper;
+import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.executiongraph.AccessExecutionGraph;
@@ -83,6 +84,11 @@ public final class MiniClusterJobClient implements JobClient, CoordinationReques
     @Override
     public JobID getJobID() {
         return jobID;
+    }
+
+    @Override
+    public Pipeline getPipeline() {
+        return null;
     }
 
     @Override

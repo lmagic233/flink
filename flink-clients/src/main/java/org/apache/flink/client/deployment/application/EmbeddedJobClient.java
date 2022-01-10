@@ -24,6 +24,7 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
 import org.apache.flink.api.common.accumulators.AccumulatorHelper;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.concurrent.ScheduledExecutor;
@@ -77,6 +78,10 @@ public class EmbeddedJobClient implements JobClient, CoordinationRequestGateway 
     @Override
     public JobID getJobID() {
         return jobId;
+    }
+
+    @Override public Pipeline getPipeline() {
+        return null;
     }
 
     @Override

@@ -18,6 +18,7 @@
 
 package org.apache.flink.table.planner.delegation;
 
+
 import org.apache.flink.table.api.TableException;
 import org.apache.flink.table.catalog.CatalogManager;
 import org.apache.flink.table.catalog.UnresolvedIdentifier;
@@ -41,6 +42,7 @@ import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.advise.SqlAdvisor;
 import org.apache.calcite.sql.advise.SqlAdvisorValidator;
+import scopt.Opt;
 
 import javax.annotation.Nullable;
 

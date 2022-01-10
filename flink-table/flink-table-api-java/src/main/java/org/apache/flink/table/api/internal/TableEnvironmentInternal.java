@@ -18,8 +18,11 @@
 
 package org.apache.flink.table.api.internal;
 
+import org.apache.calcite.rel.RelNode;
+
 import org.apache.flink.annotation.Experimental;
 import org.apache.flink.annotation.Internal;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.table.api.ExplainDetail;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
@@ -33,6 +36,7 @@ import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sources.TableSource;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * An internal interface of {@link TableEnvironment} that defines extended methods used for {@link

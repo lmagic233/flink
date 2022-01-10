@@ -426,20 +426,22 @@ public class TableSchema {
                         column -> {
                             if (column instanceof Column.PhysicalColumn) {
                                 final Column.PhysicalColumn c = (Column.PhysicalColumn) column;
-                                return TableColumn.physical(c.getName(), c.getDataType());
+                                return TableColumn.physical(c.getName(), c.getDataType(), c.getComment().orElse(null));
                             } else if (column instanceof Column.MetadataColumn) {
                                 final Column.MetadataColumn c = (Column.MetadataColumn) column;
                                 return TableColumn.metadata(
                                         c.getName(),
                                         c.getDataType(),
                                         c.getMetadataKey().orElse(null),
-                                        c.isVirtual());
+                                        c.isVirtual(),
+                                        c.getComment().orElse(null));
                             } else if (column instanceof Column.ComputedColumn) {
                                 final Column.ComputedColumn c = (Column.ComputedColumn) column;
                                 return TableColumn.computed(
                                         c.getName(),
                                         c.getDataType(),
-                                        c.getExpression().asSerializableString());
+                                        c.getExpression().asSerializableString(),
+                                        c.getComment().orElse(null));
                             }
                             throw new IllegalArgumentException(
                                     "Unsupported column type: " + column);

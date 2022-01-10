@@ -122,4 +122,15 @@ under the License.
 		</profile>
 	</profiles>
 
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<url>http://10.255.4.30:18081/repository/nicetuan-bigdata</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<url>http://10.255.4.30:18081/repository/nicetuan-bigdata</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 </project>

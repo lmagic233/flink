@@ -42,6 +42,7 @@ import org.apache.flink.streaming.api.functions.sink.TwoPhaseCommitSinkFunction;
 import org.apache.flink.streaming.api.operators.StreamingRuntimeContext;
 import org.apache.flink.streaming.connectors.kafka.internals.FlinkKafkaInternalProducer;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaSerializationSchemaWrapper;
+import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicsDescriptor;
 import org.apache.flink.streaming.connectors.kafka.internals.TransactionalIdsGenerator;
 import org.apache.flink.streaming.connectors.kafka.internals.metrics.KafkaMetricMutableWrapper;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkFixedPartitioner;
@@ -49,6 +50,7 @@ import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartiti
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.NetUtils;
+import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.TemporaryClassLoaderContext;
 
 import org.apache.flink.shaded.guava18.com.google.common.collect.Lists;
@@ -269,6 +271,8 @@ public class FlinkKafkaProducer<IN>
      * Cache of metrics to replace already registered metrics instead of overwriting existing ones.
      */
     private final Map<String, KafkaMetricMutableWrapper> previouslyCreatedMetrics = new HashMap<>();
+
+    private KafkaTopicsDescriptor topicsDescriptor;
 
     /**
      * Creates a FlinkKafkaProducer for a given topic. The sink produces a DataStream to the topic.
@@ -648,6 +652,7 @@ public class FlinkKafkaProducer<IN>
                 new FlinkKafkaProducer.ContextStateSerializer());
 
         this.defaultTopicId = checkNotNull(defaultTopic, "defaultTopic is null");
+        this.topicsDescriptor = new KafkaTopicsDescriptor(Lists.newArrayList(defaultTopicId), null);
 
         if (kafkaSchema != null) {
             this.keyedSchema = null;
@@ -1451,6 +1456,18 @@ public class FlinkKafkaProducer<IN>
         }
 
         return partitions;
+    }
+
+    public Properties getProperties() {
+        return producerConfig;
+    }
+
+    public void setTopicsDescriptor(KafkaTopicsDescriptor topicsDescriptor)  {
+        this.topicsDescriptor = Preconditions.checkNotNull(topicsDescriptor);
+    }
+
+    public KafkaTopicsDescriptor getTopicsDescriptor() {
+        return topicsDescriptor;
     }
 
     /** State for handling transactions. */

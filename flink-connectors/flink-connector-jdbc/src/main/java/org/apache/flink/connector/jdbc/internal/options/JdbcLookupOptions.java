@@ -29,11 +29,17 @@ public class JdbcLookupOptions implements Serializable {
     private final long cacheMaxSize;
     private final long cacheExpireMs;
     private final int maxRetryTimes;
+    private final long delayMs;
 
     public JdbcLookupOptions(long cacheMaxSize, long cacheExpireMs, int maxRetryTimes) {
+        this(cacheMaxSize, cacheExpireMs, maxRetryTimes, -1L);
+    }
+
+    public JdbcLookupOptions(long cacheMaxSize, long cacheExpireMs, int maxRetryTimes, long delayMs) {
         this.cacheMaxSize = cacheMaxSize;
         this.cacheExpireMs = cacheExpireMs;
         this.maxRetryTimes = maxRetryTimes;
+        this.delayMs = delayMs;
     }
 
     public long getCacheMaxSize() {
@@ -48,6 +54,10 @@ public class JdbcLookupOptions implements Serializable {
         return maxRetryTimes;
     }
 
+    public long getDelayMs() {
+        return delayMs;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -58,7 +68,8 @@ public class JdbcLookupOptions implements Serializable {
             JdbcLookupOptions options = (JdbcLookupOptions) o;
             return Objects.equals(cacheMaxSize, options.cacheMaxSize)
                     && Objects.equals(cacheExpireMs, options.cacheExpireMs)
-                    && Objects.equals(maxRetryTimes, options.maxRetryTimes);
+                    && Objects.equals(maxRetryTimes, options.maxRetryTimes)
+                    && Objects.equals(delayMs, options.delayMs);
         } else {
             return false;
         }
@@ -69,6 +80,7 @@ public class JdbcLookupOptions implements Serializable {
         private long cacheMaxSize = -1L;
         private long cacheExpireMs = -1L;
         private int maxRetryTimes = JdbcExecutionOptions.DEFAULT_MAX_RETRY_TIMES;
+        private long delayMs = -1L;
 
         /** optional, lookup cache max size, over this value, the old data will be eliminated. */
         public Builder setCacheMaxSize(long cacheMaxSize) {
@@ -88,8 +100,14 @@ public class JdbcLookupOptions implements Serializable {
             return this;
         }
 
+        /** optional, lookup join delay in milliseconds for jdbc connector. */
+        public Builder setDelayMs(int delayMs) {
+            this.delayMs = delayMs;
+            return this;
+        }
+
         public JdbcLookupOptions build() {
-            return new JdbcLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes);
+            return new JdbcLookupOptions(cacheMaxSize, cacheExpireMs, maxRetryTimes, delayMs);
         }
     }
 }

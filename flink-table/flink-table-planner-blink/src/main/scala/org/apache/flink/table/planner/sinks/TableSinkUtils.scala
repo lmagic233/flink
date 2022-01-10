@@ -161,6 +161,7 @@ object TableSinkUtils {
       val fieldDataType = fieldTypeInfo match {
         case nestedPojo: PojoTypeInfo[_] =>
           val nestedLogicalType = queryLogicalType.getFields()(index).getType.asInstanceOf[RowType]
+          // val nestedLogicalType = queryLogicalType.getFields()(queryLogicalType.getFieldIndex(name)).getType.asInstanceOf[RowType]
           expandPojoTypeToSchema(nestedPojo, nestedLogicalType).toRowDataType
         case _ =>
           fromLegacyInfoToDataType(fieldTypeInfo)
