@@ -20,6 +20,7 @@ package org.apache.flink.table.runtime.operators.window.slicing;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.table.data.RowData;
+import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.runtime.operators.window.TimeWindow;
 import org.apache.flink.util.IterableIterator;
 import org.apache.flink.util.MathUtils;
@@ -552,7 +553,10 @@ public final class SliceAssigners {
         public final long assignSliceEnd(RowData element, ClockService clock) {
             final long timestamp;
             if (rowtimeIndex >= 0) {
-                timestamp = toUtcTimestampMills(element.getLong(rowtimeIndex), shiftTimeZone);
+                // Default precision for row time is always 3, but still unsafe here
+                TimestampData timestampData = element.getTimestamp(rowtimeIndex, 3);
+                timestamp = toUtcTimestampMills(timestampData.getMillisecond(), shiftTimeZone);
+                // timestamp = toUtcTimestampMills(element.getLong(rowtimeIndex), shiftTimeZone);
             } else {
                 // in processing time mode
                 timestamp = toUtcTimestampMills(clock.currentProcessingTime(), shiftTimeZone);

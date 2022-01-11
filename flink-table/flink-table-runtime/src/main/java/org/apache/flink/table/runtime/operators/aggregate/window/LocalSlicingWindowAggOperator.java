@@ -21,6 +21,7 @@ package org.apache.flink.table.runtime.operators.aggregate.window;
 import org.apache.flink.core.memory.ManagedMemoryUseCase;
 import org.apache.flink.runtime.execution.Environment;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
+import org.apache.flink.streaming.api.operators.ChainingStrategy;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.operators.TimestampedCollector;
 import org.apache.flink.streaming.api.watermark.Watermark;
@@ -86,6 +87,8 @@ public class LocalSlicingWindowAggOperator extends AbstractStreamOperator<RowDat
         this.windowBufferFactory = windowBufferFactory;
         this.shiftTimezone = shiftTimezone;
         this.useDayLightSaving = TimeZone.getTimeZone(shiftTimezone).useDaylightTime();
+
+        chainingStrategy = ChainingStrategy.ALWAYS;
     }
 
     @Override
